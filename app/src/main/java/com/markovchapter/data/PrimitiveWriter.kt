@@ -32,8 +32,9 @@ class PrimitiveWriter {
 
     @Synchronized fun stats(): TrainingStats {
         val vocab = frequencies.size
-        return TrainingStats(wordCount, vocab, frequencies.values.sum(), 0,
-            if (wordCount == 0) 0f else vocab.toFloat() / wordCount)
+        return TrainingStats(words=wordCount, uniqueWords=vocab, transitions=0, sourceSentences=0,
+            vocabularyRatio=if (wordCount == 0) 0f else vocab.toFloat() / wordCount,
+            nouns=nouns.size, adjectives=adjectives.size, verbs=verbs.size, adverbs=adverbs.size)
     }
 
     @Synchronized fun isTrained() = wordCount > 0
