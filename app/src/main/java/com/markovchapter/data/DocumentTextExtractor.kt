@@ -27,7 +27,7 @@ class DocumentTextExtractor(private val context: Context) {
             "doc" -> readDoc(bytes)
             "docx", "docm", "dotx", "dotm" -> readZipXml(bytes) { it == "word/document.xml" || it.startsWith("word/header") || it.startsWith("word/footer") }
             "fb2" -> xmlToText(bytes.toString(Charsets.UTF_8))
-            "epub" -> readZipXml(bytes) { it.endsWith(".xhtml") || it.endsWith(".html") || it.endsWith(".htm") }
+            "epub" -> readEpub(bytes)
             "odt" -> readZipXml(bytes) { it == "content.xml" }
             "pptx" -> readZipXml(bytes) { it.startsWith("ppt/slides/slide") && it.endsWith(".xml") }
             "xlsx" -> readZipXml(bytes) { it == "xl/sharedStrings.xml" || (it.startsWith("xl/worksheets/") && it.endsWith(".xml")) }
@@ -66,12 +66,99 @@ class DocumentTextExtractor(private val context: Context) {
                 if (!entry.isDirectory && include(entry.name)) {
                     val buffer = ByteArrayOutputStream()
                     zip.copyTo(buffer)
-                    out.append(xmlToText(buffer.toString(Charsets.UTF_8))).append('\n')
+                    out.append(xmlToText(String(buffer.toByteArray(), Charsets.UTF_8))).append('\n')
                 }
                 zip.closeEntry()
             }
         }
         return out.toString()
+    }
+
+
+    /**
+     * EPUB is a ZIP container. Read chapters in OPF spine order rather than ZIP
+     * entry order, which is not guaranteed to match the book's reading order.
+     */
+    private fun readEpub(bytes: ByteArray): String {
+        val entries = linkedMapOf<String, ByteArray>()
+        var totalBytes = 0L
+        ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
+            while (true) {
+                val entry = zip.nextEntry ?: break
+                if (!entry.isDirectory) {
+                    val data = ByteArrayOutputStream()
+                    val buffer = ByteArray(8192)
+                    var entryBytes = 0L
+                    while (true) {
+                        val count = zip.read(buffer)
+                        if (count < 0) break
+                        entryBytes += count
+                        totalBytes += count
+                        require(entryBytes <= 32L * 1024 * 1024 && totalBytes <= 128L * 1024 * 1024) {
+                            "EPUB слишком велик для безопасного импорта"
+                        }
+                        data.write(buffer, 0, count)
+                    }
+                    entries[entry.name.replace('\\', '/').removePrefix("./")] = data.toByteArray()
+                }
+                zip.closeEntry()
+            }
+        }
+        require(entries.isNotEmpty()) { "EPUB-контейнер пуст или повреждён" }
+
+        val orderedChapters = runCatching {
+            val container = parseXml(entries["META-INF/container.xml"]
+                ?: error("В EPUB отсутствует META-INF/container.xml"))
+            val rootfile = container.getElementsByTagName("rootfile").item(0)
+                ?: error("В EPUB не найден OPF-файл")
+            val opfPath = rootfile.attributes.getNamedItem("full-path")?.nodeValue
+                ?: error("В EPUB не указан путь к OPF-файлу")
+            val opf = parseXml(entries[opfPath] ?: error("Не найден OPF-файл: $opfPath"))
+            val manifest = linkedMapOf<String, String>()
+            val items = opf.getElementsByTagName("item")
+            for (i in 0 until items.length) {
+                val item = items.item(i)
+                val id = item.attributes.getNamedItem("id")?.nodeValue ?: continue
+                val href = item.attributes.getNamedItem("href")?.nodeValue ?: continue
+                val media = item.attributes.getNamedItem("media-type")?.nodeValue.orEmpty()
+                if (media.contains("xhtml") || media.contains("html")) {
+                    val cleanHref = href.substringBefore('#').substringBefore('?')
+                    val joined = opfPath.substringBeforeLast('/', "").let {
+                        if (it.isEmpty()) cleanHref else "$it/$cleanHref"
+                    }
+                    val resolved = java.net.URI(null, null, joined, null).normalize().path
+                    manifest[id] = java.net.URLDecoder.decode(resolved, "UTF-8")
+                }
+            }
+            val spine = opf.getElementsByTagName("itemref")
+            val paths = buildList {
+                for (i in 0 until spine.length) {
+                    val id = spine.item(i).attributes.getNamedItem("idref")?.nodeValue ?: continue
+                    manifest[id]?.let { add(it) }
+                }
+            }
+            paths.mapNotNull { path -> entries[path] ?: entries[path.replace("%20", " ")] }
+        }.getOrNull()?.takeIf { it.isNotEmpty() }
+
+        val chapters = orderedChapters ?: entries.entries
+            .filter { (name, _) ->
+                val lower = name.lowercase()
+                (lower.endsWith(".xhtml") || lower.endsWith(".html") || lower.endsWith(".htm")) &&
+                    !lower.contains("nav") && !lower.contains("toc")
+            }
+            .sortedBy { it.key }
+            .map { it.value }
+
+        return chapters.joinToString("\n\n") { htmlToText(String(it, Charsets.UTF_8)) }
+    }
+
+    private fun parseXml(bytes: ByteArray): org.w3c.dom.Document {
+        val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+        factory.isNamespaceAware = false
+        runCatching { factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true) }
+        runCatching { factory.setFeature("http://xml.org/sax/features/external-general-entities", false) }
+        runCatching { factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false) }
+        return factory.newDocumentBuilder().parse(ByteArrayInputStream(bytes))
     }
 
     private fun xmlToText(source: String): String =
@@ -81,6 +168,8 @@ class DocumentTextExtractor(private val context: Context) {
 
     private fun htmlToText(source: String): String = xmlToText(
         source.replace(Regex("(?is)<(script|style)[^>]*>.*?</\\1>"), " ")
+            .replace(Regex("(?i)</(p|div|section|article|h[1-6]|li|blockquote|tr)>"), "\\n")
+            .replace(Regex("(?i)<br\\s*/?>"), "\\n")
     )
 
     private fun rtfToText(source: String): String = source
