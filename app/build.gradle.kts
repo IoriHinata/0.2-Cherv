@@ -22,5 +22,6 @@ dependencies {
  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
  implementation("com.tom-roush:pdfbox-android:2.0.27.0")
  implementation("org.apache.poi:poi:5.2.5")
+ implementation("org.apache.poi:poi-scratchpad:5.2.5")
  debugImplementation("androidx.compose.ui:ui-tooling")
 }
