@@ -15,7 +15,7 @@
 4. Выберите **Build > Build Bundle(s) / APK(s) > Build APK(s)**.
 5. Debug APK: `app/build/outputs/apk/debug/app-debug.apk`.
 
-В GitHub Actions каждый push в main запускает сборку. Успешный APK публикуется как artifact **MarkovChapter-debug-apk** в разделе Actions соответствующего запуска.
+В GitHub Actions каждый push в main запускает сборку. Успешный APK публикуется как artifact **MarkovChapter-debug-apk** в разделе Actions, а также прикрепляется к последнему GitHub Release: https://github.com/IoriHinata/0.2-Cherv/releases/latest/download/app-debug.apk.
 
 ## Импорт документов
 
