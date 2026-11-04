@@ -41,8 +41,8 @@ class MarkovViewModel(app:Application):AndroidViewModel(app) {
     }
 
     fun settings(s:AppSettings) {
-        store.save(s)
-        _state.value=_state.value.copy(settings=s,status="Изменения сохранены")
+        val saved=store.save(s)
+        _state.value=_state.value.copy(settings=s,status=if(saved)"Изменения сохранены" else "Не удалось сохранить изменения на устройстве")
     }
 
     fun count(n:Int) { _state.value=_state.value.copy(count=n.coerceIn(1,1000)) }
