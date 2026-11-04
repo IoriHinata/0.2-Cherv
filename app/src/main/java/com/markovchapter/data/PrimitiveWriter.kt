@@ -40,22 +40,26 @@ class PrimitiveWriter {
 
     @Synchronized fun generate(sentenceCount: Int, characters: List<String>, places: List<String>, phrases: List<String>): String {
         if (wordCount == 0) return ""
-        val output = mutableListOf<String>()
+        val paragraphs = mutableListOf<String>()
         val used = mutableSetOf<String>()
-        var previousBlock = -1
         var index = 0
         while (index < sentenceCount) {
-            val block = (0..4).filter { it != previousBlock }.random()
-            previousBlock = block
+            val block = when {
+                index == 0 -> 0
+                index + 3 >= sentenceCount -> 4
+                else -> listOf(1, 2, 3).random()
+            }
             val size = minOf(sentenceCount - index, Random.nextInt(2, 5))
-            repeat(size) {
+            val paragraph = mutableListOf<String>()
+            repeat(size) { offset ->
                 if (index < sentenceCount) {
-                    output += makeSentence(block, it, characters.randomOrNull(), places.randomOrNull(), phrases, used)
+                    paragraph += makeSentence(block, offset, characters.randomOrNull(), places.randomOrNull(), phrases, used)
                     index++
                 }
             }
+            paragraphs += paragraph.joinToString(" ")
         }
-        return output.chunked(3).joinToString("\n\n") { it.joinToString(" ") }
+        return paragraphs.joinToString("\n\n")
     }
 
     private fun makeSentence(block: Int, offset: Int, person: String?, place: String?, phrases: List<String>, used: MutableSet<String>): String {
