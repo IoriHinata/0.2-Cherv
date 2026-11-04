@@ -35,7 +35,7 @@ import com.markovchapter.data.*
 @Composable private fun StatisticsScreen(stats:TrainingStats){
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)){
   Text("Статистика обучения",style=MaterialTheme.typography.titleLarge);Text(stats.level,style=MaterialTheme.typography.headlineSmall)
-  Text("Слов обработано: ${stats.words}");Text("Уникальных слов: ${stats.uniqueWords}");Text("Обученных переходов между словами: ${stats.transitions}");Text("Предложений в исходных текстах: ${stats.sourceSentences}");Text("Разнообразие словаря: ${"%.1f".format(stats.vocabularyRatio*100)}%")
+  Text("Слов обработано: ${stats.words}");Text("Уникальных слов: ${stats.uniqueWords}");Text("Существительных в словаре: ${stats.nouns}");Text("Прилагательных в словаре: ${stats.adjectives}");Text("Глаголов в словаре: ${stats.verbs}");Text("Наречий в словаре: ${stats.adverbs}");Text("Разнообразие словаря: ${"%.1f".format(stats.vocabularyRatio*100)}%");Text("Генерация: грамматические шаблоны и абзацы-блоки",style=MaterialTheme.typography.bodySmall)
   LinearProgressIndicator(progress={stats.progress},modifier=Modifier.fillMaxWidth());Text("Ориентир для базовой работы: 50 000 слов");Text(if(stats.wordsRemaining>0)"До ориентира осталось: ${stats.wordsRemaining} слов" else "Базовый ориентир достигнут");Text(stats.advice)
   Text("Оценка ориентировочная: объём не гарантирует связный сюжет. Лучше загружать полные тексты одного жанра, без оглавлений, рекламы и посторонних фрагментов.",style=MaterialTheme.typography.bodySmall)
  }
