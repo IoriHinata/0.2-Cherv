@@ -2,4 +2,6 @@
 
 Локальное Android-приложение для генерации глав на основе цепей Маркова.
 
-См. [инструкцию по сборке](docs/BUILD.md).
+Kotlin · Jetpack Compose · MVVM/StateFlow · SharedPreferences · Markov order 2.
+
+Сборка: [docs/BUILD.md](docs/BUILD.md). Архитектура: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
