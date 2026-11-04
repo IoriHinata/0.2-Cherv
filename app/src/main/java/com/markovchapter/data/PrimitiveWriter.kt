@@ -80,7 +80,7 @@ class PrimitiveWriter {
             )
             2 -> listOf(
                 "В голове возникла мысль: «$noun».",
-                "Это казалось $adjective, но объяснения не было.",
+                "Слово «$adjective» казалось важным, но объяснения не было.",
                 "Слово «$adjective» никак не выходило из памяти.",
                 "Он вспомнил, как однажды приходилось $verb."
             )
@@ -114,8 +114,7 @@ class PrimitiveWriter {
         return candidates.first().key
     }
 
-    private fun isVerb(w: String) = w.endsWith("ть") || w.endsWith("ться") || w.endsWith("л") ||
-        w.endsWith("ла") || w.endsWith("ли") || w.endsWith("ет") || w.endsWith("ит") || w.endsWith("ют") || w.endsWith("ут")
+    private fun isVerb(w: String) = w.endsWith("ться") || w.endsWith("ть")
     private fun isAdjective(w: String) = w.endsWith("ый") || w.endsWith("ий") || w.endsWith("ая") ||
         w.endsWith("ое") || w.endsWith("ые") || w.endsWith("ого") || w.endsWith("ему") || w.endsWith("ыми")
     private fun isAdverb(w: String) = w.endsWith("о") || w.endsWith("ски")
