@@ -1,10 +1,28 @@
-# Сборка
+# Сборка MarkovChapter
 
-1. Установите Android Studio и JDK 17.
-2. Клонируйте: `git clone https://github.com/IoriHinata/0.2-Cherv.git`.
-3. Откройте корневую папку в Android Studio и дождитесь Gradle Sync.
-4. Установите Android SDK Platform 35, если IDE попросит.
-5. Выберите **Build > Build Bundle(s) / APK(s) > Build APK(s)**.
-6. APK: `app/build/outputs/apk/debug/app-debug.apk`.
+## Требования
 
-Проект не использует интернет, нейросети или облачные API.
+- Android Studio (актуальная стабильная версия).
+- JDK 17.
+- Android SDK Platform 35.
+- Интернет нужен только Android Studio/Gradle для загрузки библиотек и сборки. Само приложение и обучение работают локально.
+
+## Открытие и сборка
+
+1. Клонируйте репозиторий: `git clone https://github.com/IoriHinata/0.2-Cherv.git`.
+2. Откройте корневую папку в Android Studio.
+3. Дождитесь Gradle Sync и установки запрошенных компонентов SDK.
+4. Выберите **Build > Build Bundle(s) / APK(s) > Build APK(s)**.
+5. Debug APK: `app/build/outputs/apk/debug/app-debug.apk`.
+
+В GitHub Actions каждый push в main запускает сборку. Успешный APK публикуется как artifact **MarkovChapter-debug-apk** в разделе Actions соответствующего запуска.
+
+## Импорт документов
+
+Поддерживаются TXT, DOC, DOCX, PDF, EPUB, RTF, HTML/HTM, ODT, PPTX, XLSX, MD, CSV, TSV, XML, JSON и LOG. Файловый выбор открыт для всех MIME-типов, но содержимое импортируется только для перечисленных расширений.
+
+PDF должен иметь текстовый слой: OCR сканированных страниц не выполняется. Парольные документы не поддерживаются. Для PDF используется PDFBox-Android, для старого бинарного Word DOC — Apache POI.
+
+## Примечание
+
+Генератор — статистическая цепь Маркова второго порядка. Настройка модулей задаёт порядок и долю предложений в блоках; она не является полноценным планировщиком сюжета. Результат может требовать литературной редакторской правки.
