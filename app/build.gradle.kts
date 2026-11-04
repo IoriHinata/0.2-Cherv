@@ -6,7 +6,7 @@ plugins {
 android {
  namespace = "com.markovchapter"
  compileSdk = 35
- defaultConfig { applicationId = "com.markovchapter"; minSdk = 26; targetSdk = 35; versionCode = 1; versionName = "1.0" }
+ defaultConfig { applicationId = "com.markovchapter"; minSdk = 26; targetSdk = 35; versionCode = 2; versionName = "1.1" }
  buildFeatures { compose = true }
  compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
  kotlinOptions { jvmTarget = "17" }
@@ -20,5 +20,7 @@ dependencies {
  implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
  implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+ implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+ implementation("org.apache.poi:poi:5.2.5")
  debugImplementation("androidx.compose.ui:ui-tooling")
 }
