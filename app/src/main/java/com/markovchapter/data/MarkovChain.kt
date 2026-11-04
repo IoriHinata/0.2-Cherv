@@ -24,7 +24,7 @@ class MarkovChain {
    p=p.second to n
   }
   val s=out.joinToString(" ").replace(" ,",",").replace(" .",".").replace(" !","!").replace(" ?","?").replace(" …","…")
-  return s.replaceFirstChar { it.uppercase() }.let { if(it.lastOrNull() in endings) it else "$it." }
+  return s.replaceFirstChar { it.uppercase() }.let { if(it.takeLast(1) in endings) it else "$it." }
  }
  companion object { private val endings=setOf(".","!","?","…") }
 }
