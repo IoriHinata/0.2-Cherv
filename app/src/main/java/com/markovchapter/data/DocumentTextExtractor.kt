@@ -25,16 +25,17 @@ class DocumentTextExtractor(private val context: Context) {
         val text = when (ext) {
             "pdf" -> readPdf(bytes)
             "doc" -> readDoc(bytes)
-            "docx" -> readZipXml(bytes) { it == "word/document.xml" || it.startsWith("word/header") || it.startsWith("word/footer") }
+            "docx", "docm", "dotx", "dotm" -> readZipXml(bytes) { it == "word/document.xml" || it.startsWith("word/header") || it.startsWith("word/footer") }
+            "fb2" -> xmlToText(bytes.toString(Charsets.UTF_8))
             "epub" -> readZipXml(bytes) { it.endsWith(".xhtml") || it.endsWith(".html") || it.endsWith(".htm") }
             "odt" -> readZipXml(bytes) { it == "content.xml" }
             "pptx" -> readZipXml(bytes) { it.startsWith("ppt/slides/slide") && it.endsWith(".xml") }
             "xlsx" -> readZipXml(bytes) { it == "xl/sharedStrings.xml" || (it.startsWith("xl/worksheets/") && it.endsWith(".xml")) }
             "html", "htm" -> htmlToText(bytes.toString(Charsets.UTF_8))
             "rtf" -> rtfToText(bytes.toString(Charsets.UTF_8))
-            "txt", "md", "markdown", "csv", "tsv", "xml", "json", "log", "text" ->
+            "txt", "md", "markdown", "csv", "tsv", "xml", "json", "log", "text", "tex", "rst", "adoc", "yaml", "yml", "ini", "properties", "sql" ->
                 decodeText(bytes)
-            else -> error("Формат .$ext пока не поддерживается. Поддерживаются TXT, DOC, DOCX, PDF, EPUB, RTF, HTML, ODT, PPTX, XLSX, MD, CSV, XML и JSON.")
+            else -> error("Формат .$ext пока не поддерживается. Поддерживаются TXT, DOC, DOCX/DOCM, PDF, EPUB, FB2, RTF, HTML, ODT, PPTX, XLSX, MD, CSV, XML и JSON.")
         }.trim()
         if (text.isBlank()) error("В файле не найден извлекаемый текст")
         return ImportedText(name, text)
